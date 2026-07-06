@@ -3,7 +3,7 @@ title: Policy governance for Work IQ MCP
 description: Learn how the Work IQ policy layer helps govern MCP tool access.
 author: kangxh75
 ms.author: allenk
-ms.topic: conceptual
+ms.topic: concept-article
 ms.localizationpriority: medium
 ms.date: 06/16/2026
 ---
