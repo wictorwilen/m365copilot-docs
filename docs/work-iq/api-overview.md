@@ -50,6 +50,7 @@ Work IQ can reason over:
 - Documents in OneDrive and SharePoint
 - Microsoft Teams messages
 - People and organizational context
+- Microsoft Planner plans
 - Enterprise search results
 
 ## Choose a protocol

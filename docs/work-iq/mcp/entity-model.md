@@ -3,7 +3,7 @@ title: Work IQ MCP entity model
 description: Learn how Work IQ MCP uses resource paths, generic tools, and runtime schema discovery to work with Microsoft 365 entities.
 author: kangxh75
 ms.author: allenk
-ms.topic: conceptual
+ms.topic: concept-article
 ms.localizationpriority: medium
 ms.date: 06/16/2026
 ---
