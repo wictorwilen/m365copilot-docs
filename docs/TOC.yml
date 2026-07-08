@@ -359,6 +359,19 @@ items:
     - name: License terms
       href: /legal/m365-copilot-agent-eval-tool/license-terms?context=/microsoft-365/copilot/extensibility/context
 
+- name: Get agent insights
+  items:
+  - name: Insights Agent overview
+    href: insights-agent-overview.md
+  - name: Quickstart
+    href: insights-agent-quickstart.md
+  - name: Sample prompts
+    href: insights-agent-sample-prompts.md
+  - name: Prompt and capabilities reference
+    href: insights-agent-prompt-reference.md
+  - name: Troubleshooting
+    href: insights-agent-troubleshooting.md
+
 - name: Publish and manage agents
   items:
   - name: Publish agents
