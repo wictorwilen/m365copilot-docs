@@ -41,6 +41,8 @@ landingContent:
             url: /microsoft-365/copilot/extensibility/overview-custom-engine-agent
           - text: Evaluate agents
             url: /microsoft-365/copilot/extensibility/evaluation-overview
+          - text: Use Insights Agent (preview)
+            url: /microsoft-365/copilot/extensibility/insights-agent-overview
           - text: Manage agents in the Microsoft 365 admin center
             url: /microsoft-365/admin/manage/manage-copilot-agents-integrated-apps?context=/microsoft-365/copilot/extensibility/context
 
