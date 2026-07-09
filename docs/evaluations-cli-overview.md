@@ -1,7 +1,7 @@
 ---
 title: Agent Evaluations CLI overview (preview)
 description: Learn how to evaluate Microsoft 365 Copilot agents using automated testing and AI-powered metrics.
-ms.date: 05/01/2026
+ms.date: 06/19/2026
 author: lauragra
 ms.author: lauragra
 ms.reviewer: sakov
@@ -35,9 +35,13 @@ Each response is scored using standard evaluation metrics.
 | Coherence | LLM-based | 1-5 | 3 | Yes |
 | Groundedness | LLM-based | 1-5 | 3 | No |
 | Similarity | LLM-based | 1-5 | 3 | No |
+| RetrievalQuery | Non-LLM | Pass/fail | N/A | No |
+| RetrievalResult | Non-LLM | Proportional | 1.0 | No |
 | Citations | Count-based | >= 0 | 1 | No |
 | ExactMatch | String match | boolean | N/A | No |
 | PartialMatch | String match | 0.0-1.0 | 0.5 | No |
+
+For detailed information about each evaluator, including configuration options and sample datasets, see [Evaluators reference](evaluations-cli-evaluators.md).
 
 ## How the evaluation workflow works
 
@@ -69,5 +73,6 @@ These values enable authentication and allow the tool to run LLM-based evaluatio
 
 - [Quickstart: Use the Agent Evaluations CLI](evaluations-cli-quickstart.md)
 - [Dataset schema and test design](evaluations-cli-create-tests.md)
+- [Evaluators reference](evaluations-cli-evaluators.md)
 - [CLI reference](evaluations-cli-reference.md)
 - [Troubleshooting and support](evaluations-cli-troubleshooting.md)
