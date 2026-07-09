@@ -5,7 +5,7 @@ description: Learn how to add knowledge sources to your declarative agents.
 author: lauragra
 ms.author: lauragra
 ms.localizationpriority: medium
-ms.date: 06/18/2026
+ms.date: 07/09/2026
 ms.topic: overview
 ---
 
@@ -85,6 +85,22 @@ If you're using [Agents Toolkit and Visual Studio Code](build-declarative-agents
 ```
 
 If you're using [Agent Builder](agent-builder-build-agents.md) to create your agent, on the **Configure** tab, under **Knowledge**, list the website URLs that you want to reference.
+
+### Web search grounding and dynamic content
+
+When a declarative agent's manifest scopes web search to specific website URLs, the agent grounds its responses on content that Bing indexes for those sites rather than direct access to the underlying data source.
+
+Scoped web search relies on content that Bing indexes for the configured websites. As a result, content that depends on client-side rendering or dynamically generated data might not be fully represented in search results. In some cases, dynamically loaded content can be missing or out of date relative to what appears on the live site.
+
+This behavior can produce inconsistent results. The content shown on a website can differ from the content available to the agent, and the agent might not reliably return the newest items from lists that are generated dynamically or updated frequently.
+
+This behavior is expected with the current declarative-agent architecture. Declarative agents aren't intended for dynamically generated or non-OpenAPI web sources, and these scenarios can lead to incomplete or inconsistent grounding results.
+
+To access structured, frequently changing content directly, use an API plugin backed by an OpenAPI specification instead of scoped web search. An API plugin allows the agent to query the underlying data source directly and use API parameters such as sorting and result limits, rather than relying on indexed web content. Alternatively, migrate the content to a supported OpenAPI-based or static knowledge source. For guidance on these approaches, see:
+
+- [Write effective instructions for declarative agents with API plugins](instructions-api-plugins.md)
+- [Add an API plugin to a declarative agent by using an existing API](build-api-plugins-existing-api.md)
+- [OpenAPI document guidance](openapi-document-guidance.md)
 
 ## Embedded file content
 
