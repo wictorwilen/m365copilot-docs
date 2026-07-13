@@ -35,6 +35,8 @@ For more information about report views and names, see [Microsoft 365 reports - 
 > - Access audit data through Microsoft Purview Audit Log
 > - Export programmatically using `Search-UnifiedAuditLog` (PowerShell) or the Office 365 Management Activity API
 
+[!INCLUDE [national-cloud-support](../../includes/global-only.md)]
+
 ## Permissions
 
 [!INCLUDE [permissions-intro](../../includes/permissions-intro.md)]
@@ -65,7 +67,7 @@ For more information about report views and names, see [Microsoft 365 reports - 
 :::zone pivot="graph-v1"
 
 ``` http
-GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUsageUserDetail
+GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period={period})
 ```
 
 :::zone-end
@@ -73,7 +75,7 @@ GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUsage
 :::zone pivot="graph-preview"
 
 ``` http
-GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUsageUserDetail
+GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period={period})
 ```
 
 :::zone-end

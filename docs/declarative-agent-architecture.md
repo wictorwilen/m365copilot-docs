@@ -6,7 +6,7 @@ author: TheBluLion
 ms.author: euloh
 ms.reviewer: jhaskett-msft
 ms.topic: concept-article
-ms.date: 12/19/2025
+ms.date: 07/09/2026
 ms.contributor: mapichle, ericsche
 ---
 
@@ -31,6 +31,8 @@ Declarative agents inherit the Microsoft 365 infrastructure and provide specific
 | Security and compliance | Inherits Microsoft 365 controls and commitments. Reduced developer effort but no developer control. | Microsoft 365 ecosystem organizations that want lower SecOps overhead | Organizations that require different security and compliance postures. |
 | Orchestrator and language model | Not within developer's control. | Microsoft 365 Copilot licensed users, Copilot Tuning organizations, and Microsoft 365 Copilot Chat | Complex intent or dictionary use cases. |
 | Tool calling | Provides best of both worlds for calling Microsoft owned capabilities and external tools. | Microsoft 365 workloads | On-premises APIs and data sources. Non OpenAPI-based specs. Streaming API workloads. |
+
+When you scope web search to specific website URLs, a declarative agent grounds on Bing-indexed web content rather than querying the source directly. For dynamically generated content, this approach can make results incomplete or stale. For more information, see [Web search grounding and dynamic content](knowledge-sources.md#web-search-grounding-and-dynamic-content).
 
 > [!NOTE]
 > Cross prompt injection attacks (XPIA) are a type of security vulnerability in conversational AI systems. Malicious input in one prompt or conversation context manipulates or alters the behavior of the AI in subsequent prompts or sessions, potentially leading to unintended or harmful outputs. This vulnerability occurs when information from previous user inputs or contexts is improperly handled, allowing an attacker to inject instructions or data that persist and influence future interactions. Content filtering and inline disengagement are common mitigations for XPIA.
@@ -86,6 +88,7 @@ The declarative approach also introduces constraints that might limit certain us
 - **Limited orchestration control**: Developers don't control iterative reasoning loops and complex workflow orchestration.
 - **Restricted customization**: Custom corpus development isn't possible except in limited scenarios such as Copilot Tuning.
 - **Sequential processing**: The sequential nature of grounding and tool calling prevents complex multistep operations.
+- **Dynamic web content considerations**: Declarative agents work best with supported knowledge sources and web content that is available through web search. Dynamically generated or non-OpenAPI web sources can lead to incomplete, inconsistent, or out-of-date grounding results.
 
 ## Use case alignment
 
@@ -106,6 +109,7 @@ Declarative agents aren't suited for:
 - **Complex decision trees**: Workflows that require multiple conditional branches and iterative processing.
 - **Large data processing**: Operations that require analysis of extensive datasets or full document contexts.
 - **Custom AI models**: Scenarios that require specialized language models or custom training data.
+- **Reliable recency from dynamic sites**: Agents that must reliably return the most-recent or chronologically ordered items from a dynamic or AJAX-rendered website.
 
 Understanding these characteristics helps organizations make informed decisions about when declarative agents provide the optimal balance of capability and simplicity for their AI implementation requirements.
 
@@ -113,3 +117,5 @@ Understanding these characteristics helps organizations make informed decisions 
 
 - [Agents overview](agents-overview.md)
 - [Custom engine agent architecture](custom-engine-agent-architecture.md)
+- [Overview of API plugins](overview-plugins.md)
+- [Web and scoped web search](knowledge-sources.md#web-and-scoped-web-search)
