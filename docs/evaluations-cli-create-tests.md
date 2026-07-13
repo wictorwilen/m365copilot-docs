@@ -9,6 +9,8 @@ ms.topic: concept-article
 ms.localizationpriority: medium
 ---
 
+<!-- cSpell:ignore runevals -->
+
 # Dataset schema and test design
 
 Evaluation datasets are JSON files containing prompts and expected responses. This article defines the dataset schema, documents where the tool looks for datasets, and shows how to design effective tests - including advanced scenarios like multi-turn conversations, per-item evaluator configuration, and categorized test suites.
@@ -33,13 +35,15 @@ The simplest valid dataset requires only `schemaVersion` and an `items` array wi
 }
 ```
 
-Schema version `1.2.0` adds support for default and per-item evaluator configuration, evaluator mode control, named items, and multi-turn conversations. For details, see [Configure evaluators](#configure-evaluators) and [Multi-turn evaluation patterns](#multi-turn-evaluation-patterns).
+Schema version `1.6.0` adds support for default and per-item evaluator configuration, evaluator mode control, named items, and multi-turn conversations. For details, see [Configure evaluators](#configure-evaluators) and [Multi-turn evaluation patterns](#multi-turn-evaluation-patterns).
 
 ### Schema fields
 
+You can find the evaluation dataset schema in [JSON Schema](https://json-schema.org/) format on [GitHub](https://raw.githubusercontent.com/microsoft/m365-copilot-eval/refs/heads/main/schema/v1/eval-document.schema.json).
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `schemaVersion` | string | Recommended | Semantic version (for example, `"1.0.0"` or `"1.2.0"`). Backward compatibility is guaranteed within a major version. Use `"1.2.0"` to enable evaluator configuration, evaluator modes, and native multi-turn support. |
+| `schemaVersion` | string | Recommended | Semantic version (for example, `"1.0.0"` or `"1.6.0"`). Backward compatibility is guaranteed within a major version. Use `"1.6.0"` to enable evaluator configuration, evaluator modes, and native multi-turn support. |
 | `items` | array | Yes | Array of test items. Each item is either a single-turn prompt/response pair or a named multi-turn conversation. |
 | `description` | string | Optional | Free-text description of the dataset (for example, `"Regression tests for Q1 2026 release"`). |
 | `default_evaluators` | object | Optional | Evaluators applied to every item in the dataset unless overridden. Each key is an evaluator name (for example, `"Relevance"`, `"Coherence"`); the value is an options object (use `{}` for defaults). Requires `schemaVersion` `"1.2.0"` or later. |
@@ -55,7 +59,7 @@ Schema version `1.2.0` adds support for default and per-item evaluator configura
 
 ### Configure evaluators
 
-Schema version `1.2.0` lets you control which evaluators run and how they're configured, at both the dataset level and the individual item level.
+Schema version `1.6.0` lets you control which evaluators run and how they're configured, at both the dataset level and the individual item level. For details about each evaluator's scoring behavior and configuration options, see [Evaluators reference](evaluations-cli-evaluators.md).
 
 #### Default evaluators
 
@@ -63,7 +67,7 @@ Use `default_evaluators` at the top level to specify evaluators that apply to ev
 
 ```json
 {
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.6.0",
   "default_evaluators": {
     "Relevance": {},
     "Coherence": {}
@@ -88,7 +92,7 @@ Use the `evaluators` field on an individual item (or turn) to add or override ev
 
 ```json
 {
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.6.0",
   "default_evaluators": {
     "Relevance": {},
     "Coherence": {}
@@ -114,7 +118,7 @@ The following example shows every schema feature in a single dataset: top-level 
 
 ```json
 {
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.6.0",
   "default_evaluators": {
     "Relevance": {},
     "Coherence": {}
@@ -182,7 +186,7 @@ When you run `runevals`, the tool searches for datasets in this order:
 
 ### Recommended project structure
 
-```
+```text
 my-agent/
 ├── .env.local                     # Agent configuration
 ├── .env.local.user                # Secrets (not committed)
@@ -198,7 +202,7 @@ my-agent/
 
 If the tool doesn't find a dataset file, it prompts you to create a starter file:
 
-```
+```bash
 ⚠️  No prompts file found in current directory or ./evals/
 
 Create a starter evals file with sample prompts? (Y/n):
@@ -312,11 +316,11 @@ Test how the agent handles errors gracefully.
 
 ### Multi-turn evaluation patterns
 
-Schema version `1.2.0` supports multi-turn conversations. Use the `turns` array within an item to define an ordered sequence of prompts and expected responses that form a single conversation flow. Each turn can optionally include its own evaluator configuration.
+Schema version `1.2.0` and later supports multi-turn conversations. Use the `turns` array within an item to define an ordered sequence of prompts and expected responses that form a single conversation flow. Each turn can optionally include its own evaluator configuration.
 
 ```json
 {
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.6.0",
   "default_evaluators": {
     "Relevance": {},
     "Coherence": {}
@@ -375,7 +379,7 @@ If you're using schema version `1.0.0`, you can approximate multi-turn conversat
 ```
 
 > [!NOTE]
-> With sequential items, each item is evaluated independently. The agent doesn't carry conversation context between items. For true multi-turn evaluation with shared context, use the `turns` array with schema version `1.2.0`.
+> With sequential items, each item is evaluated independently. The agent doesn't carry conversation context between items. For true multi-turn evaluation with shared context, use the `turns` array with schema version `1.2.0` or later.
 
 ### Per-prompt categorization and scoring
 
@@ -406,7 +410,7 @@ Use the optional `category` field to group items so you can analyze scores by di
 
 For large projects, organize tests by category across multiple files.
 
-```
+```text
 evals/
 ├── knowledge-base.json       # Knowledge verification
 ├── tool-usage.json           # Plugin and action tests
@@ -580,7 +584,7 @@ When tests score poorly:
 Save test results to compare across versions.
 
 ```bash
-runevals --output ./evals/results/v1.2.0-results.json
+runevals --output ./evals/results/v1.6.0-results.json
 ```
 
 ## Related content
