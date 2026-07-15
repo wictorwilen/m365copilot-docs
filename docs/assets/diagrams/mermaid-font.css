@@ -1,0 +1,11 @@
+/* Force the diagram font, overriding Mermaid's hardcoded Trebuchet MS in
+   sequence-diagram styles. Pass to mermaid-cli with -C / --cssFile. */
+svg[id] text,
+svg[id] .messageText,
+svg[id] .noteText,
+svg[id] .labelText,
+svg[id] .loopText,
+svg[id] .actor > tspan,
+svg[id] tspan {
+  font-family: Calibri, "Segoe UI", Helvetica, Arial, sans-serif !important;
+}

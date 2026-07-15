@@ -5,7 +5,7 @@ author: jasonjoh
 ms.author: jasonjoh
 ms.localizationpriority: medium
 ms.topic: troubleshooting-general
-ms.date: 05/13/2026
+ms.date: 07/14/2026
 ---
 
 # Troubleshoot MCP apps in Microsoft 365 Copilot
@@ -26,15 +26,42 @@ MCP tools available to your agent show up in the **Actions** section of the debu
 
 ### No tools listed
 
-If the **Actions** section of the debug information card doesn't list any MCP tools, check the following items.
+If the **Actions** section of the debug information card doesn't list any MCP tools, check the following items:
 
 - Confirm your MCP server is running and you're connecting to the correct MCP endpoint in your plugin manifest.
-- Verify your plugin manifest includes the expected tools in the `functions` property.
-- Verify that the MCP server runtime specified in the `runtimes` property in your plugin manifest:
-  - References the tools in the `mcp_tool_description` property by either:
-    - Referencing a JSON file that contains the tool descriptions in the `file` property **OR**
-    - Listing the tool descriptions inline in the `tools` property
-  - Includes the tool names in the `run_for_functions` property.
+- Confirm that authentication succeeds. Many MCP servers return no tools until the user signs in, so a failed or skipped sign-in can result in an empty tool list.
+
+#### Dynamic tool discovery
+
+If your agent uses [dynamic tool discovery](plugin-dynamic-tool-discovery.md) (the default), the tools are resolved from the server at runtime. Check that:
+
+- The `RemoteMCPServer` runtime sets `run_for_functions` to `["*"]` and the top-level `functions` array is empty.
+- The server's `tools/list` method returns tools. You can inspect the response by using a tool such as [MCP Inspector](https://www.npmjs.com/package/@modelcontextprotocol/inspector).
+- A newly discovered or modified tool isn't withheld by runtime validation. Check the debug information for validation errors.
+
+```json
+"runtimes": [
+  {
+    "type": "RemoteMCPServer",
+    "spec": {
+      "url": "https://api.contoso.com/mcp"
+    },
+    "run_for_functions": [
+      "*"
+    ]
+  }
+]
+```
+
+#### Pinned tools
+
+If you pinned a fixed set of tools, verify that the MCP server runtime specified in the `runtimes` property in your plugin manifest:
+
+- Includes the expected tools in the top-level `functions` property.
+- References the tools in the `mcp_tool_description` property by either:
+  - Referencing a JSON file that contains the tool descriptions in the `file` property **OR**
+  - Listing the tool descriptions inline in the `tools` property
+- Includes the tool names in the `run_for_functions` property.
 
 ```json
 "runtimes": [
@@ -42,7 +69,9 @@ If the **Actions** section of the debug information card doesn't list any MCP to
     "type": "RemoteMCPServer",
     "spec": {
       "url": "https://api.contoso.com/mcp",
-      "mcp_tool_description": "mcp-tools.json"
+      "mcp_tool_description": {
+        "file": "mcp-tools.json"
+      }
     },
     "run_for_functions": [
       "get_widget",
