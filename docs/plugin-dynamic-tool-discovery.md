@@ -4,7 +4,7 @@ description: Learn how dynamic tool discovery enables declarative agents in Micr
 author: amitharjani93
 ms.author: amith
 ms.localizationpriority: medium
-ms.date: 06/04/2026
+ms.date: 07/14/2026
 ms.topic: overview
 ---
 
@@ -12,20 +12,20 @@ ms.topic: overview
 
 # Dynamic tool discovery for MCP plugins in Microsoft 365 Copilot
 
-Dynamic tool discovery enables declarative agents that use [MCP server-based actions](build-mcp-plugins.md) to resolve their available tools at runtime, directly from the MCP server, instead of being limited to the tool list captured in the agent's plugin manifest at publish time. This feature lets users access the latest capabilities of an MCP server in near real time, without waiting for the agent to be repackaged, revalidated, and republished.
+Dynamic tool discovery enables declarative agents that use [MCP server-based plugins](build-mcp-plugins.md) to resolve their available tools at runtime, directly from the MCP server, instead of being limited to the tool list captured in the agent's plugin manifest at publish time. This feature lets users access the latest capabilities of an MCP server in near real time, without waiting for the agent to be repackaged, revalidated, and republished.
 
 > [!NOTE]
-> Dynamic tool discovery is rolling out first to Microsoft-published agents in Microsoft 365 Copilot. See [Availability and rollout](#availability-and-rollout) for details.
+> Dynamic tool discovery includes tools that return interactive UI widgets ([MCP apps](plugin-mcp-apps.md)). The agent renders these widgets with no extra configuration.
 
-## How dynamic tool discovery differs from static tool discovery
+## How dynamic tool discovery differs from pinned tools
 
-Today, MCP plugins use **static tool discovery**. The agent developer imports the tools that an MCP server exposes, declares them in the plugin manifest, and ships them as part of the agent package. Any change to the tool surface, such as adding a new tool, removing a deprecated one, renaming a parameter, or refining a description, requires the agent developer to update the manifest, resubmit the agent, and have it revalidated and republished before users see the change.
+With **pinned tools**, the agent developer selects the tools that an MCP server exposes, declares them in the plugin manifest, and ships them as part of the agent package. Any change to the tool surface, such as adding a new tool, removing a deprecated one, renaming a parameter, or refining a description, requires the agent developer to update the manifest, resubmit the agent, and have it revalidated and republished before users see the change.
 
 With **dynamic tool discovery**, the agent no longer carries a fixed tool list. The platform fetches the current tool definitions from the MCP server at runtime, diffs them against the last known set, validates the changes, and applies them so the agent operates on an up-to-date view of the server's capabilities.
 
 The following table summarizes the differences.
 
-| Aspect                              | Static tool discovery (existing)                                                                 | Dynamic tool discovery                                                                                  |
+| Aspect                              | Pinned tools                                                                                     | Dynamic tool discovery                                                                                  |
 |-------------------------------------|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
 | Source of tool definitions          | Plugin manifest packaged with the agent                                                          | MCP server, fetched at runtime                                                                          |
 | When tool definitions are resolved  | At agent publish time                                                                            | At runtime, per session                                                                                 |
@@ -36,15 +36,82 @@ The following table summarizes the differences.
 | Time to retire a deprecated tool    | Days to weeks                                                                                    | Near real time                                                                                          |
 | Trust and safety checks on tool definitions | Performed at publish time during store validation                                        | Publish-time agent-level validation **plus** runtime responsible AI (RAI) and cross-prompt injection attack (XPIA) validation on every newly discovered or modified tool before it is activated |
 
-## Availability and rollout
+## Plugin manifest differences
 
-Dynamic tool discovery is rolling out first to **Microsoft-published agents** in Microsoft 365 Copilot. Support for agents published by other providers and for tenant-built and deployed agents will follow.
+The plugin manifest expresses the discovery mode through the configuration of the `RemoteMCPServer` runtime.
+
+With **pinned tools**, list the tools in the `functions` array and the runtime's `run_for_functions` property. Store their definitions in the runtime's `mcp_tool_description` property:
+
+```json
+{
+  "functions": [
+    { "name": "search_repositories" },
+    { "name": "search_users" }
+  ],
+  "runtimes": [
+    {
+      "type": "RemoteMCPServer",
+      "spec": {
+        "url": "https://api.contoso.com/mcp",
+        "mcp_tool_description": {
+          "file": "mcp-tools.json"
+        }
+      },
+      "run_for_functions": [
+        "search_repositories",
+        "search_users"
+      ]
+    }
+  ]
+}
+```
+
+With **dynamic tool discovery**, the `functions` array is empty and the runtime's `run_for_functions` property is set to `["*"]`, so the agent resolves all of the server's tools at runtime:
+
+```json
+{
+  "functions": [],
+  "runtimes": [
+    {
+      "type": "RemoteMCPServer",
+      "spec": {
+        "url": "https://api.contoso.com/mcp"
+      },
+      "run_for_functions": [
+        "*"
+      ]
+    }
+  ]
+}
+```
+
+For more information, see [MCP server spec object](plugin-manifest-2.4.md#mcp-server-spec-object).
+
+## Configure pinned tools with Agents Toolkit
+
+By default, [Microsoft 365 Agents Toolkit](https://aka.ms/M365AgentsToolkit) configures a new MCP plugin for dynamic tool discovery. To pin a fixed, curated set of tools instead - for example, to expose only a subset of the server's tools, or to keep the tool surface constant between releases - select the tools in Agents Toolkit. The tool surface then doesn't change until you update the manifest and republish the agent.
+
+To pin a specific set of tools:
+
+1. Open the **.vscode/mcp.json** file. Select the **Start** button in the file editor.
+
+1. If prompted to authenticate, select **Allow** to authenticate.
+
+1. Select the **ATK: Fetch action from MCP** button in the file editor, then select **ai-plugin.json**.
+
+    :::image type="content" source="assets/images/api-plugins/fetch-mcp-actions.png" alt-text="A screenshot of the 'ATK: Fetch action from MCP' and 'Start' buttons in mcp.json":::
+
+1. Select the tools for the agent to use.
+
+    :::image type="content" source="assets/images/api-plugins/mcp-tool-selection.png" alt-text="A screenshot of the tool selection interface in VS Code":::
+
+After you select the tools, Agents Toolkit updates **ai-plugin.json** with the pinned tools, as shown in [Plugin manifest differences](#plugin-manifest-differences). Agents Toolkit stores the tool definitions in the runtime's `mcp_tool_description` property, either inline in a `tools` array or as a reference to a `file` that contains them. The definitions match the format returned by the MCP server's `tools/list` method.
 
 ## Transparency, governance, and audit for admins
 
 Dynamic tool discovery shifts *when tools are discovered* from publish time to runtime. The MCP server developer still authors and owns the tool definitions. To preserve the transparency, governance, and compliance guarantees admins rely on, the platform provides controls and audit signals through the Microsoft 365 admin center (MAC) and Microsoft Purview.
 
-### Distinguishing agents with dynamic discovery from static discovery
+### Distinguishing agents with dynamic discovery from pinned tools
 
 Admins can identify which agents in their tenant use dynamic tool discovery from the agent details view in the Microsoft 365 admin center. In the **Data & tools** tab of the agent details view, an information banner under the **Tools** section indicates that the agent uses an MCP server whose tools can change at runtime.
 
@@ -59,7 +126,7 @@ There's no separate tenant- or agent-level switch for the dynamic tool discovery
 - If an admin doesn't want a specific agent that uses dynamic tool discovery to be available in their tenant, they can disable or block that agent through the same agent-management controls they use today for any declarative agent.
 - Use the same controls, including assigning an agent to specific users or groups, to stage availability of an agent that uses dynamic tool discovery before broader rollout.
 
-This approach means dynamic tool discovery doesn't introduce a new policy surface for admins to learn. Agent enablement, scoping, and disablement work the same way regardless of whether the agent uses static or dynamic tool discovery. The agent-details view tells the admin which discovery mechanism the agent uses, so they can make an informed decision about whether to allow it.
+This approach means dynamic tool discovery doesn't introduce a new policy surface for admins to learn. Agent enablement, scoping, and disablement work the same way regardless of whether the agent uses pinned tools or dynamic tool discovery. The agent-details view tells the admin which discovery mechanism the agent uses, so they can make an informed decision about whether to allow it.
 
 ### Audit logs in Microsoft Purview
 

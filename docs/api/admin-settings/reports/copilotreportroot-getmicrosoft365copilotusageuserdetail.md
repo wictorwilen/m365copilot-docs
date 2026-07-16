@@ -3,7 +3,7 @@ title: "copilotReportRoot: getMicrosoft365CopilotUsageUserDetail"
 description: Recent activity data for enabled users of Microsoft 365 Copilot apps. Copilot usage reports APIs are available as standard REST APIs under the Microsoft Graph namespace.
 author: mestew
 ms.author: mstewart
-ms.date: 02/19/2026
+ms.date: 07/15/2026
 ms.localizationpriority: medium
 ms.topic: reference
 doc_type: apiPageType
@@ -67,7 +67,7 @@ For more information about report views and names, see [Microsoft 365 reports - 
 :::zone pivot="graph-v1"
 
 ``` http
-GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period={period})
+GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period={period}, version={version})
 ```
 
 :::zone-end
@@ -75,7 +75,7 @@ GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUsage
 :::zone pivot="graph-preview"
 
 ``` http
-GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period={period})
+GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period={period}, version={version})
 ```
 
 :::zone-end
@@ -84,9 +84,40 @@ GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUsage
 
 In the request URL, provide the following query parameters with values.
 
-| Parameter   | Type   | Description |
-|-------------|--------|-------------|
-| `period`    | String | The number of previous days over which to report aggregated usage. The supported values are: `D7`, `D30`, `D90`, `D180`, `ALL`. The first four values follow the format Dn where n represents the number of previous days over which to aggregate data. `ALL` indicates to report usage for 7, 30, 90, and 180 days. |
+| Parameter | Type   | Description |
+|-----------|--------|-------------|
+| `period`  | String | Required. The number of previous days over which to report aggregated usage. The supported values depend on the value of `version`. For `v1`, they are: `D7`, `D30`, `D90`, `D180`, `ALL`. For `v2`, they are `D7`, `D28`, `D90`, `D180`, `ALL`. The first four values follow the format `Dn` where `n` represents the number of previous days over which to aggregate data. `ALL` indicates to report usage for all supported periods (7, 30, 90, and 180 days for `v1`, 7, 28, 90, and 180 days for `v2`). |
+| `version` | String | Optional. The requested report version. The supported values are `v1` (default) and `v2`. |
+
+### Report versions
+
+Version 1 reports contain the following information.
+
+- Report Refresh Date
+- User Principal Name
+- Display Name
+- Last Activity Date
+- Copilot Chat Last Activity Date
+- Microsoft Teams Copilot Last Activity Date
+- Word Copilot Last Activity Date
+- Excel Copilot Last Activity Date
+- PowerPoint Copilot Last Activity Date
+- Outlook Copilot Last Activity Date
+- OneNote Copilot Last Activity Date
+- Loop Copilot Last Activity Date
+- Report Period
+
+Version 2 reports contain all of the information from version 1, with the following additional information.
+
+- Prompts submitted for all apps
+- Prompts submitted for Copilot Chat (work)
+- Prompts submitted for Copilot Chat (web)
+- Active Usage Days for all apps
+- Copilot Chat (work) Last Activity Date
+- Copilot Chat (web) Last Activity Date
+- Microsoft 365 Copilot Last Activity Date
+- Edge Last Activity Date
+- Copilot Agent Last Activity Date
 
 ## Request headers
 
@@ -100,7 +131,13 @@ Don't supply a request body for this method.
 
 ## Response
 
-If successful, this function returns a `200 OK` response code and a stream in the response body.
+:::zone pivot="graph-v1"
+If successful, this function returns a `200 OK` response code and a stream in the response body. The contents of the stream are a CSV file with the requested report.
+:::zone-end
+
+:::zone pivot="graph-preview"
+If successful, this function returns a `200 OK` response code and a JSON representation of the requested report in the response body.
+:::zone-end
 
 ## Examples
 
@@ -110,16 +147,16 @@ The following example shows a request.
 
 :::zone pivot="graph-v1"
 
-``` http
-GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period='D7')?$format=application/json
+```http
+GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period='D7')
 ```
 
 :::zone-end
 
 :::zone pivot="graph-preview"
 
-``` http
-GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period='D7')?$format=application/json
+```http
+GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period='D7')
 ```
 
 :::zone-end
@@ -128,10 +165,23 @@ GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUsage
 
 The following example shows the response. The response object shown here might be shortened for readability.
 
-``` json
+:::zone pivot="graph-v1"
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/octet-stream
+
+Report Refresh Date,User Principal Name,Display Name,Last Activity Date,Copilot Chat Last Activity Date,Microsoft Teams Copilot Last Activity Date,Word Copilot Last Activity Date,Excel Copilot Last Activity Date,PowerPoint Copilot Last Activity Date,Outlook Copilot Last Activity Date,OneNote Copilot Last Activity Date,Loop Copilot Last Activity Date,Report Period
+2026-07-03,E58EEF6A6BBD3D0293CB306D24A42057,6A4630397AAA1A9C8EED362168DC88A0,,,,,,,,,,7
+```
+
+:::zone-end
+
+:::zone pivot="graph-preview"
+
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 10747
 
 {
   "value": [
@@ -157,3 +207,5 @@ Content-Length: 10747
   ]
 }
 ```
+
+:::zone-end

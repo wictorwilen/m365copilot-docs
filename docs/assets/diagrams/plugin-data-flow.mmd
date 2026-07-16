@@ -1,0 +1,70 @@
+---
+title: Plugin data flow
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#eef3fb"
+    primaryBorderColor: "#4f6bed"
+    primaryTextColor: "#1b1f24"
+    actorBkg: "#4f6bed"
+    actorBorder: "#3a51c6"
+    actorTextColor: "#ffffff"
+    signalColor: "#4a4a4a"
+    signalTextColor: "#1b1f24"
+    noteBkgColor: "#f5f0ff"
+    noteBorderColor: "#8661c5"
+    noteTextColor: "#1b1f24"
+    labelBoxBkgColor: "#eef3fb"
+    labelBoxBorderColor: "#4f6bed"
+    labelTextColor: "#1b1f24"
+    loopTextColor: "#1b1f24"
+    altSectionBkgColor: "#ffffff"
+    fontFamily: "Calibri, Segoe UI, Helvetica, Arial, sans-serif"
+    fontSize: "15px"
+  sequence:
+    diagramMarginX: 40
+    diagramMarginY: 20
+    boxMargin: 12
+    messageMargin: 40
+    mirrorActors: true
+    wrap: true
+    width: 220
+---
+sequenceDiagram
+    autonumber
+    actor User
+    participant Agent as Declarative agent
+    participant Store as Token store
+    participant Plugin as Plugin<br/>(MCP server or REST API)
+
+    User->>Agent: "How much is left in the Fourth Coffee lobby renovation budget?"
+
+    rect rgb(238, 243, 251)
+        opt MCP plugin with dynamic tool discovery
+            Agent->>Plugin: Request current tools (tools/list)
+            Plugin-->>Agent: Return tool definitions
+            Agent->>Agent: Validate new or changed tools
+        end
+    end
+
+    Note over Agent: Match prompt to GetBudget tool<br/>(budgetName = "Fourth Coffee lobby renovation")
+
+    rect rgb(255, 244, 224)
+        Note over User, Agent: Consent
+        Agent->>User: Ask to allow sending data to the plugin
+        User-->>Agent: Allow once or always allow
+    end
+
+    rect rgb(253, 235, 236)
+        opt Plugin requires authentication
+            Agent->>Store: Request token or API key
+            Store-->>Agent: Return token or key<br/>(prompt sign-in if needed)
+        end
+    end
+
+    rect rgb(230, 244, 234)
+        Note over Agent, Plugin: Request and response
+        Agent->>Plugin: Send request with parameters
+        Plugin-->>Agent: Return response<br/>{ "availableFunds": 5000.00 }
+        Agent->>User: "The available funds left in the Fourth Coffee lobby renovation budget are $5,000."
+    end

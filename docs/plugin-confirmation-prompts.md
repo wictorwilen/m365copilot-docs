@@ -4,7 +4,7 @@ description: Learn about confirmation prompts for MCP and API plugins and how to
 author: jasonjoh
 ms.author: jasonjoh
 ms.localizationpriority: medium
-ms.date: 04/23/2026
+ms.date: 07/14/2026
 ms.topic: article
 ---
 
@@ -92,6 +92,9 @@ get:
 ## Customizing confirmation text
 
 Developers can specify the confirmation text by setting the `body` property in the [Confirmation object](plugin-manifest-2.4.md#confirmation-object) in the function's [Function capabilities object](plugin-manifest-2.4.md#function-capabilities-object) in the plugin manifest. The value of `body` should be indicative of what the function does. If this property isn't present in the manifest, the `description` property in the [Function object](plugin-manifest-2.4.md#function-object) is used instead.
+
+> [!NOTE]
+> Customizing the confirmation text applies only to tools that are declared in the plugin manifest's `functions` array (pinned tools). For MCP plugins that use [dynamic tool discovery](plugin-dynamic-tool-discovery.md), tools are resolved from the MCP server at runtime and aren't declared in the manifest, so you can't customize their confirmation text. Copilot uses the tool's `description` from the MCP server's `tools/list` response instead.
 
 ```json
 {

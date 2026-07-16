@@ -166,7 +166,21 @@ items:
         - name: Build an MCP plugin
           href: build-mcp-plugins.md
         - name: Authentication
-          href: plugin-authentication.md
+          items:
+          - name: Overview
+            href: plugin-authentication.md
+          - name: Microsoft Entra SSO
+            href: plugin-authentication-entra-sso.md
+          - name: Dynamic client registration
+            href: plugin-authentication-dynamic-client-registration.md
+          - name: OAuth 2.0
+            href: plugin-authentication-oauth.md
+          - name: API key
+            href: plugin-authentication-api-key.md
+          - name: Anonymous
+            href: plugin-authentication-none.md
+          - name: Troubleshooting
+            href: plugin-authentication-troubleshooting.md
         - name: Add UI with MCP apps
           href: plugin-mcp-apps.md
         - name: Dynamic tool discovery
@@ -191,7 +205,21 @@ items:
         - name: Build an API plugin from an existing API
           href: build-api-plugins-existing-api.md
         - name: Authentication
-          href: plugin-authentication.md
+          items:
+          - name: Overview
+            href: plugin-authentication.md
+          - name: Microsoft Entra SSO
+            href: plugin-authentication-entra-sso.md
+          - name: Dynamic client registration
+            href: plugin-authentication-dynamic-client-registration.md
+          - name: OAuth 2.0
+            href: plugin-authentication-oauth.md
+          - name: API key
+            href: plugin-authentication-api-key.md
+          - name: Anonymous
+            href: plugin-authentication-none.md
+          - name: Troubleshooting
+            href: plugin-authentication-troubleshooting.md
         - name: Confirmation prompts
           href: plugin-confirmation-prompts.md
         - name: Add citations

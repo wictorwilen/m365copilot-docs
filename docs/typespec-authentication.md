@@ -1,6 +1,6 @@
 ---
 title: Authentication support in TypeSpec for Microsoft 365 Copilot
-description: Learn how to configure authentication for TypeSpec-based solutions using OAuth2, Entra ID SSO, API keys, and anonymous access.
+description: Learn how to configure authentication for TypeSpec-based solutions using OAuth2, Microsoft Entra SSO, API keys, and anonymous access.
 author: slevert
 ms.author: slevert
 ms.localizationpriority: medium
@@ -17,7 +17,7 @@ TypeSpec for Microsoft 365 Copilot supports multiple authentication methods to s
 - [No authentication](#no-authentication-anonymous) for public endpoints
 - [API key authentication](#api-key-authentication) for simple token-based access
 - [OAuth2 authorization code flow](#oauth2-authorization-code-flow) for secure non-Microsoft integrations
-- [Entra ID single sign-on (SSO) authentication](#entra-id-sso-authentication) for seamless Microsoft 365 identity integration
+- [Microsoft Entra single sign-on (SSO) authentication](#microsoft-entra-sso-authentication) for seamless Microsoft 365 identity integration
 
 > [!NOTE]
 > This documentation covers Microsoft 365 Copilot-specific authentication scenarios. For comprehensive TypeSpec authentication documentation, including all native authentication decorators and patterns, see the [TypeSpec documentation on Authentication](https://typespec.io/docs/libraries/http/authentication).
@@ -53,7 +53,7 @@ namespace API {
 }
 ```
 
-The Microsoft 365 Agents Toolkit can automatically register your API key and will also add the `apiKey/register` action to **m365agents.yml** in your Agents Toolkit project.
+Microsoft 365 Agents Toolkit can automatically register your API key and will also add the `apiKey/register` action to **m365agents.yml** in your Agents Toolkit project.
 
 ```yaml
 # m365agents.yml
@@ -93,7 +93,7 @@ namespace API {
 }
 ```
 
-The Microsoft 365 Agents Toolkit can automatically register your OAuth2 configuration and will also add the `oauth/register` action to **m365agents.yml** in your Agents Toolkit project.
+Microsoft 365 Agents Toolkit can automatically register your OAuth2 configuration and will also add the `oauth/register` action to **m365agents.yml** in your Agents Toolkit project.
 
 ```yaml
 # m365agents.yml
@@ -112,9 +112,9 @@ The Microsoft 365 Agents Toolkit can automatically register your OAuth2 configur
 
 The [Tasks Agent using TypeSpec for Microsoft 365 Copilot that connects to the Microsoft Graph APIs sample](https://adoption.microsoft.com/sample-solution-gallery/sample/pnp-copilot-pro-dev-da-typespec-todo/) highlights the use of OAuth2 with authorization code flow.
 
-## Entra ID SSO authentication
+## Microsoft Entra SSO authentication
 
-Seamless authentication applying the user's existing Microsoft 365 session for native integration scenarios. To complete the SSO registration, use the regular [`OAuth2Auth`](#oauth2-authorization-code-flow) flow and perform the [manual steps](api-plugin-authentication.md#update-the-microsoft-entra-app-registration).
+Seamless authentication applying the user's existing Microsoft 365 session for native integration scenarios. To complete the SSO registration, use the regular [`OAuth2Auth`](#oauth2-authorization-code-flow) flow and perform the [manual steps](plugin-authentication-entra-sso.md#step-3-update-the-entra-app-registration).
 
 ## Using registered authentication configurations
 
