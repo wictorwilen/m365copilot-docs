@@ -1,260 +1,52 @@
 ---
-title: Configure Authentication for MCP and API plugins in agents in Microsoft 365 Copilot
+title: Configure authentication for MCP and API plugins in agents in Microsoft 365 Copilot
 description: Learn how to set up authentication for MCP and API plugins in agents running in Microsoft 365 Copilot.
 author: jasonjoh
 ms.author: jasonjoh
 ms.localizationpriority: medium
-ms.date: 06/18/2026
+ms.date: 07/14/2026
 ms.topic: article
 ---
 
 # Configure authentication for MCP and API plugins in agents
 
-You can configure authentication for Model Context Protocol (MCP) and API plugins in agents running in Microsoft 365 Copilot by using any of the four supported authentication schemes to seamlessly connect to their backend APIs:
+Agents in Microsoft 365 Copilot connect to backend services through plugins. A plugin can wrap a Model Context Protocol (MCP) server or an API described by an OpenAPI document. To let a plugin access a protected MCP server or API, you configure an authentication scheme so Microsoft 365 Copilot can obtain and send the right credentials on behalf of the signed-in user.
 
-- OAuth 2.0 authorization code flow
-- Microsoft Entra ID single-sign on (SSO) authentication
-- API key authentication (API plugins only)
-- No authentication (anonymous)
+This documentation set uses MCP plugins (also called MCP servers or MCP actions) as the default walkthrough. The same configuration steps apply to API plugins built from an OpenAPI document, except where noted in each article.
 
-## OAuth 2.0 authorization code flow
+## Supported authentication schemes
 
-A plugin can access an MCP server or API using a bearer token obtained through the OAuth 2.0 authorization code flow, with optional Proof Key for Code Exchange (PKCE) support. In this flow, Microsoft 365 Copilot opens the sign-in experience, the OAuth provider returns an authorization response to Teams, and Teams exchanges the authorization code for tokens.
+Choose the authentication scheme that matches how your MCP server or API protects its endpoints:
 
-Before you begin, register with your OAuth 2.0 provider to get a client ID and secret. Configure `https://teams.microsoft.com/api/platform/v1.0/oAuthRedirect` as an allowed redirect URI or authorization callback URL in the OAuth provider registration. Teams uses this callback URL to receive the authorization response from your provider.
+| Authentication scheme                | MCP plugins   | API plugins   | Article                                                                            |
+|--------------------------------------|---------------|---------------|------------------------------------------------------------------------------------|
+| Microsoft Entra single sign-on (SSO) | Supported     | Supported     | [Configure Microsoft Entra SSO authentication](plugin-authentication-entra-sso.md) |
+| Dynamic client registration (DCR)    | Supported     | Not supported | [Configure dynamic client registration](plugin-authentication-dynamic-client-registration.md)              |
+| OAuth 2.0 authorization code flow    | Supported     | Supported     | [Configure OAuth 2.0 authentication](plugin-authentication-oauth.md)               |
+| API key                              | Not supported | Supported     | [Configure API key authentication](plugin-authentication-api-key.md)               |
+| No authentication (anonymous)        | Supported     | Supported     | [Configure no authentication (anonymous)](plugin-authentication-none.md)           |
 
-> [!IMPORTANT]
-> Plugin support for OAuth 2.0 has the following limitations.
->
-> - MCP and API plugins only support the authorization code flow for OAuth 2.0.
-> - OAuth 2.0 servers that return `307 Temporary Redirect` HTTP status codes from their token endpoint aren't supported.
+## How plugin authentication works
 
-To enable OAuth 2.0 authentication, register an OAuth client in the Teams developer portal. You can register an OAuth client by using [Microsoft 365 Agents Toolkit](https://aka.ms/M365AgentsToolkit) in Visual Studio Code or by manually registering in the Teams developer portal.
+Each scheme relies on an **authentication configuration** (auth config) - a record stored in the Microsoft Enterprise token store that holds the credentials or client details needed to authenticate to your MCP server or API. You create the auth config in one of three ways:
 
-> [!NOTE]
-> Declarative agents don't provide a built-in way for users to manually clear stored OAuth credentials. The Bot Framework Token Service centrally manages tokens, and they might continue to persist after an agent is uninstalled due to SSO caching, tenant settings, or client differences.
->
-> To force reauthentication, use server-side sign out by calling [`SignOutUserAsync`](/dotnet/api/microsoft.bot.builder.botframeworkadapter.signoutuserasync) to invalidate bot tokens. For a full reset, you can optionally combine this method with the Microsoft Graph [`revokeSignInSessions`](/graph/api/user-revokesigninsessions) API or remove the user's consent.
->
-> For a better user experience, consider adding a **Sign out/switch account** action that triggers these server-side sign out flows so users are prompted to sign in again.
+- **[Microsoft 365 Agents Toolkit](https://aka.ms/M365AgentsToolkit)** creates the auth config and updates your plugin manifest automatically as you build the agent.
+- **The declarative agent developer skill** (MCP plugins only) creates the auth config and updates the manifest for you from natural-language instructions.
+- **The Microsoft Teams developer portal** lets you create the auth config manually, or manage one that Agents Toolkit or the skill created.
 
-### Register an OAuth client with Agents Toolkit
+Your plugin manifest references the auth config by its ID in the [runtime authentication object](plugin-manifest-2.4.md#runtime-authentication-object). At runtime, Microsoft 365 Copilot uses the auth config to obtain a token or API key from the token store and includes it when the plugin calls your MCP server or API.
 
- Agents Toolkit registers your OAuth client and updates your app package when you [create an agent with an MCP plugin](build-mcp-plugins.md) (if the server requires authentication) or [create an agent with API plugin from an existing OpenAPI document](build-api-plugins-existing-api.md).
+Follow the article for your chosen authentication scheme to configure that specific type.
 
-For API plugins, you must define the `securitySchemes` property in your OpenAPI document. For more information, see [OAuth 2.0](https://swagger.io/docs/specification/authentication/oauth2/).
-
-```yml
-securitySchemes:
-  OAuth2:
-    type: oauth2
-    flows:
-      authorizationCode:
-        authorizationUrl: <authorization_url>
-        tokenUrl: <token_url>
-        refreshUrl: <refresh_url>
-        scopes:
-          scope: description
-```
-
-If your OAuth provider supports PKCE, uncomment the following line of code in m365agents.yml in your agent project before provisioning the agent.
-
-```yml
-# isPKCEEnabled: true
-```
-
-### Register an OAuth client in Teams developer portal
-
-The OAuth client registration in the Teams developer portal connects your agent's plugin configuration to the OAuth provider registration that issues tokens for your MCP server or API. The values in this registration must match your OAuth provider, your plugin manifest, and the protected API endpoint. Mismatched base URLs, app restrictions, or registration IDs can prevent users from signing in or can block token exchange.
-
-1. Open [Teams developer portal](https://dev.teams.microsoft.com/tools). Select **Tools** -> **OAuth client registration**.
-
-1. If you have no existing registrations, select **Register client**. If you have existing registrations, select **New OAuth client registration**.
-
-1. Fill in the following fields.
-
-    - **Registration name**: A friendly name for your registration.
-    - **Base URL**: Your API's base URL. This value should correspond to the URL in the `url` property of the [MCP server spec object](plugin-manifest-2.4.md#mcp-server-spec-object) in the plugin manifest for MCP-based plugins, or an entry in the [`servers` array](https://swagger.io/docs/specification/v3_0/api-host-and-base-path/) in your OpenAPI document for API plugins.
-    - **Restrict usage by org**: Select which Microsoft 365 organizations can use this OAuth registration to access your API endpoints. Use **My organization only** for development or testing in one tenant. Use **Any Microsoft 365 organization** when the plugin must work across tenants.
-    - **Restrict usage by app**: Select **Any Teams app** during development if you don't know the final Teams app ID. After your app has a stable app ID, bind the registration to **Existing Teams app ID** so only that app can use the OAuth registration.
-    - **Client ID**: The client ID or application ID issued by your OAuth 2.0 provider.
-    - **Client secret**: Your client secret issued by your OAuth 2.0 provider.
-    - **Authorization endpoint**: The URL from your OAuth 2.0 provider that apps use to [request an authorization code](/entra/identity-platform/v2-oauth2-auth-code-flow#request-an-authorization-code)
-    - **Token endpoint**: The URL from your OAuth 2.0 provider that apps use to [redeem a code for an access token](/entra/identity-platform/v2-oauth2-auth-code-flow#redeem-a-code-for-an-access-token)
-    - **Refresh endpoint**: The URL from your OAuth 2.0 provider that apps use to [refresh the access token](/entra/identity-platform/v2-oauth2-auth-code-flow#refresh-the-access-token)
-    - **Scope**: The permissions your plugin requests from the OAuth provider. Use the scope values required by your provider and API. If your provider uses the Microsoft identity platform and your plugin needs refresh tokens, include `offline_access` with any API-specific delegated scopes.
-    - **Enable Proof Key for Code Exchange (PKCE)**: Enable this setting if your OAuth provider supports PKCE.
-
-    > [!NOTE]
-    > For Cowork MCP plugins, follow the same OAuth client registration model in this article. If the plugin must work across tenants, set **Restrict usage by org** to **Any Microsoft 365 organization**. If your OAuth provider uses the Microsoft identity platform and the plugin needs automatic token refresh, include `offline_access` in **Scope** with any API-specific delegated scopes.
-
-1. Select **Save**.
-
-1. Completing the registration generates an **OAuth client registration ID**.
-
-#### Add the client registration ID to the plugin manifest
-
-To use OAuth 2.0 authentication for your plugin, set the `type` property of the [runtime authentication object](plugin-manifest-2.4.md#runtime-authentication-object) to `OAuthPluginVault`, and set the `reference_id` to the client registration ID from the Teams Developer Portal.
-
-```json
-"auth": {
-  "type": "OAuthPluginVault",
-  "reference_id": "auth registration ID"
-},
-```
-
-## Microsoft Entra ID SSO authentication
-
-Microsoft Entra ID SSO authentication allows seamless single sign-on (SSO) integration, enabling users to authenticate with their existing Microsoft Entra ID credentials. This integration simplifies access management and ensures secure connections to MCP servers or APIs without requiring extra credentials. Your MCP server or API must use Microsoft Entra ID to control access.
-
-### Register an SSO client in Teams developer portal
-
-1. Open [Teams developer portal](https://dev.teams.microsoft.com/tools). Select **Tools** -> **Microsoft Entra SSO client ID registration**.
-
-1. If you have no existing registrations, select **Register client ID**. If you have existing registrations, select **New client registration**.
-
-1. Fill in the following fields.
-
-    - **Registration name**: A friendly name for your registration.
-    - **Base URL**: Your API's base URL. This value should correspond to the URL in the `url` property of the [MCP server spec object](plugin-manifest-2.4.md#mcp-server-spec-object) in the plugin manifest for MCP-based plugins, or an entry in the [`servers` array](https://swagger.io/docs/specification/v3_0/api-host-and-base-path/) in your OpenAPI document for API plugins.
-    - **Restrict usage by org**: Select which Microsoft 365 organization has access to your app to access API endpoints.
-    - **Restrict usage by app**: Select **Any Teams app** if you don’t know your final app ID. After you publish your app, bind this registration with your published app ID.
-    - **Client ID**: The client ID of the app registered in Microsoft Entra.
-
-1. Select **Save**.
-
-1. Completing the registration generates a **Microsoft Entra SSO registration ID** and an **Application ID URI**.
-
-### Update the Microsoft Entra app registration
-
-1. Open [Microsoft Entra admin center](https://entra.microsoft.com/). Update the Microsoft Entra app registration that secures your MCP server or API with the **Application ID URI** generated by the Teams developer portal. If you have an existing application ID URI mapped to the app registration, you can use the manifest editor to add another URI in the **identifierUris** section.
-
-    ```json
-    "identifierUris": [
-      "<<URI1>>"
-      "<<URI2>>"
-    ]
-    ```
-
-    > [!NOTE]
-    > Adding multiple URIs isn't supported through the Microsoft Entra admin center's UI. The UI only displays the first URI in the list. Adding multiple URIs doesn't affect your existing URIs and scopes even if they show differently in the UI.
-
-1. Select **Authentication** under **Manage**. Add `https://teams.microsoft.com/api/platform/v1.0/oAuthConsentRedirect` to the **Redirect URIs** in the **Web** platform.
-
-1. Select **Expose an API** under **Manage**. Select **Add a client application** and add the client ID of Microsoft's enterprise token store, `ab3be6b7-f5df-413d-ac2d-abf1e3fd9c0b`.
-
-### Add the SSO registration ID to the plugin manifest
-
-Set the `type` property of the [runtime authentication object](plugin-manifest-2.4.md#runtime-authentication-object) to `OAuthPluginVault`, and set the `reference_id` to the **Microsoft Entra SSO registration ID** from the Teams developer portal.
-
-```json
-"auth": {
-  "type": "OAuthPluginVault",
-  "reference_id": "SSO registration ID"
-},
-```
-
-### Add the new token audience to your API
-
-Update your MCP server or API to allow the new identifier URI as the token audience. If your MCP server or API validates the client application ID, make sure that the Microsoft enterprise token store's client ID (`ab3be6b7-f5df-413d-ac2d-abf1e3fd9c0b`) is added as an allowed client application.
-
-> [!TIP]
-> If your MCP server or API uses the [on-behalf-of flow](/entra/identity-platform/v2-oauth2-on-behalf-of-flow) to get access to another web API that requires the user to grant consent, return a `401 Unauthorized` error to cause the agent to prompt the user to sign in to grant consent.
-
-## API key authentication
-
-Some APIs use API keys for authorization. An API key is a shared secret that the client includes in API requests to authenticate and gain access. API plugins support sending the API key in three ways:
-
-- As a bearer token in the `Authorization` header
-- As a value in a custom header
-- As a query parameter
+- [Configure Microsoft Entra SSO authentication](plugin-authentication-entra-sso.md)
+- [Configure dynamic client registration](plugin-authentication-dynamic-client-registration.md)
+- [Configure OAuth 2.0 authentication](plugin-authentication-oauth.md)
+- [Configure API key authentication](plugin-authentication-api-key.md)
+- [Configure anonymous authentication](plugin-authentication-none.md)
 
 > [!NOTE]
-> MCP plugins don't support API key authentication.
+> For Cowork MCP plugins, follow the same authentication configuration model described in these articles. If your OAuth provider uses the Microsoft identity platform and the plugin needs automatic token refresh, include `offline_access` in the **Scope** field with any API-specific delegated scopes.
 
-### Add API key to your OpenAPI document
+## Related content
 
-Microsoft 365 Copilot determines how to send the API key based on the `securitySchemes` entry in your OpenAPI document.
-
-#### Bearer token
-
-If your API accepts the API key as a bearer token, enable Bearer authentication in your OpenAPI document. For more information, see [Bearer authentication](https://swagger.io/docs/specification/v3_0/authentication/bearer-authentication/).
-
-```yml
-securitySchemes:
-  BearerAuth:
-    type: http
-    scheme: bearer
-```
-
-#### Custom header
-
-If your API accepts the API key in a custom header, enable API key authentication in your OpenAPI document with the `in` property set to `header` and the `name` property set to the header name. For more information, see [API Keys](https://swagger.io/docs/specification/v3_0/authentication/api-keys/).
-
-```yml
-securitySchemes:
-  ApiKeyAuth:
-    type: apiKey
-    in: header
-    name: X-API-KEY
-```
-
-#### Query parameter
-
-If your API accepts the API key in a query parameter, enable API key authentication in your OpenAPI document with the `in` property set to `query` and the `name` property set to the name of the query parameter. For more information, see [API Keys](https://swagger.io/docs/specification/v3_0/authentication/api-keys/).
-
-```yml
-securitySchemes:
-  ApiKeyAuth:
-    type: apiKey
-    in: query
-    name: api_key
-```
-
-### Register an API key
-
-To enable API key authentication, you need to register the API key in the Teams developer portal. You can register the API key with Agents Toolkit in Visual Studio Code or by manually registering in the Teams developer portal.
-
-#### Register an API key with Agents Toolkit
-
- Agents Toolkit registers your API key and updates your app package for you when you create an agent with API plugin from an existing OpenAPI document. You must have the `securitySchemes` property defined in your OpenAPI document.
-
-#### Register an API key in Teams developer portal
-
-1. Open [Teams developer portal](https://dev.teams.microsoft.com/tools). Select **Tools** -> **API key registration**
-
-1. If you have no existing registrations, select **Create an API key**. If you have existing registrations, select **New API key**.
-
-1. Select **Add secret** and enter the API key.
-
-1. Fill in the following fields.
-
-    - **API key name**: A friendly name for your registration.
-    - **Base URL**: Your API's base URL. This value should correspond to an entry in the [`servers` array](https://swagger.io/docs/specification/v3_0/api-host-and-base-path/) in your OpenAPI document.
-    - **Target tenant**: Limit API access to home tenant or not.
-    - **Target Teams App**: Select **Any Teams app** if you don’t know your final app ID. After you publish your app, bind this registration with your published app ID.
-
-1. Select **Save**.
-
-1. Completing the registration generates an **API key registration ID**.
-
-##### Add the API key registration ID to the plugin manifest
-
-1. In your plugin manifest file, set the `type` property of the [runtime authentication object](plugin-manifest-2.4.md#runtime-authentication-object) to `ApiKeyPluginVault`, and set the `reference_id` to the API key registration ID from the Teams developer portal.
-
-```json
-"auth": {
-  "type": "ApiKeyPluginVault",
-  "reference_id": "app key registration ID"
-},
-```
-
-## No authentication (anonymous)
-
-For MCP servers or APIs that don't require any authentication, or for developer environments where authentication isn't yet implemented, plugins can access the MCP server or API anonymously. In this case, set the `type` property of the [runtime authentication object](plugin-manifest-2.4.md#runtime-authentication-object) to `None`.
-
-```json
-"auth": {
-  "type": "None"
-},
-```
+- [Troubleshoot MCP and API plugin authentication](plugin-authentication-troubleshooting.md)

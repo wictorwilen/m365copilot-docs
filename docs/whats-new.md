@@ -4,7 +4,7 @@ description: Find out what's new in Microsoft 365 Copilot extensibility, includi
 author: lauragra
 ms.author: lauragra
 ms.localizationpriority: medium
-ms.date: 05/28/2026
+ms.date: 07/15/2026
 ms.topic: overview
 ---
 
@@ -16,6 +16,12 @@ ms.topic: overview
 As a developer, you can extend, enrich, and customize [Microsoft 365 Copilot](/microsoft-365-copilot/microsoft-365-copilot-overview) for the unique way your customers work. This article provides the latest information about what's new in Microsoft 365 Copilot extensibility.
 
 For the latest information, announcements, and news about preview and generally available (GA) features, follow the [Microsoft 365 Copilot developer blog](https://devblogs.microsoft.com/microsoft365dev/category/microsoft-365-copilot/).
+
+## July 2026
+
+### New version parameter for Copilot usage reports API
+
+A `version` parameter is added to the [getMicrosoft365CopilotUserCountSummary](api/admin-settings/reports/copilotreportroot-getmicrosoft365copilotusercountsummary.md), [getMicrosoft365CopilotUserCountTrend](api/admin-settings/reports/copilotreportroot-getmicrosoft365copilotusercounttrend.md), and [getMicrosoft365CopilotUsageUserDetail](api/admin-settings/reports/copilotreportroot-getmicrosoft365copilotusageuserdetail.md) APIs that developers can use to request extra information in the generated reports.
 
 ## May 2026
 
@@ -95,5 +101,6 @@ Agent Builder is now available in Government Community Cloud High (GCCH) environ
 The Microsoft 365 Copilot Retrieval API is now available to users without a Microsoft 365 Copilot add-on license via pay-as-you-go consumption (preview). This model provides access to the Retrieval API for tenant-level data sources such as SharePoint and Microsoft 365 Copilot connectors. For more information, see [Microsoft 365 Copilot Retrieval API pay-as-you-go consumption (preview)](api/ai-services/retrieval/paygo-retrieval.md).
 
 ## Related content
+
 - [Microsoft 365 Copilot extensibility overview](overview.md)
 - [What's new history](whats-new-history.md)

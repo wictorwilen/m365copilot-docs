@@ -5,7 +5,7 @@ author: jasonjoh
 ms.author: jasonjoh
 ms.localizationpriority: medium
 ms.topic: troubleshooting-general
-ms.date: 05/13/2026
+ms.date: 07/14/2026
 ---
 
 # Troubleshoot MCP apps in Microsoft 365 Copilot
@@ -26,15 +26,42 @@ MCP tools available to your agent show up in the **Actions** section of the debu
 
 ### No tools listed
 
-If the **Actions** section of the debug information card doesn't list any MCP tools, check the following items.
+If the **Actions** section of the debug information card doesn't list any MCP tools, check the following items:
 
 - Confirm your MCP server is running and you're connecting to the correct MCP endpoint in your plugin manifest.
-- Verify your plugin manifest includes the expected tools in the `functions` property.
-- Verify that the MCP server runtime specified in the `runtimes` property in your plugin manifest:
-  - References the tools in the `mcp_tool_description` property by either:
-    - Referencing a JSON file that contains the tool descriptions in the `file` property **OR**
-    - Listing the tool descriptions inline in the `tools` property
-  - Includes the tool names in the `run_for_functions` property.
+- Confirm that authentication succeeds. Many MCP servers return no tools until the user signs in, so a failed or skipped sign-in can result in an empty tool list.
+
+#### Dynamic tool discovery
+
+If your agent uses [dynamic tool discovery](plugin-dynamic-tool-discovery.md) (the default), the tools are resolved from the server at runtime. Check that:
+
+- The `RemoteMCPServer` runtime sets `run_for_functions` to `["*"]` and the top-level `functions` array is empty.
+- The server's `tools/list` method returns tools. You can inspect the response by using a tool such as [MCP Inspector](https://www.npmjs.com/package/@modelcontextprotocol/inspector).
+- A newly discovered or modified tool isn't withheld by runtime validation. Check the debug information for validation errors.
+
+```json
+"runtimes": [
+  {
+    "type": "RemoteMCPServer",
+    "spec": {
+      "url": "https://api.contoso.com/mcp"
+    },
+    "run_for_functions": [
+      "*"
+    ]
+  }
+]
+```
+
+#### Pinned tools
+
+If you pinned a fixed set of tools, verify that the MCP server runtime specified in the `runtimes` property in your plugin manifest:
+
+- Includes the expected tools in the top-level `functions` property.
+- References the tools in the `mcp_tool_description` property by either:
+  - Referencing a JSON file that contains the tool descriptions in the `file` property **OR**
+  - Listing the tool descriptions inline in the `tools` property
+- Includes the tool names in the `run_for_functions` property.
 
 ```json
 "runtimes": [
@@ -42,7 +69,9 @@ If the **Actions** section of the debug information card doesn't list any MCP to
     "type": "RemoteMCPServer",
     "spec": {
       "url": "https://api.contoso.com/mcp",
-      "mcp_tool_description": "mcp-tools.json"
+      "mcp_tool_description": {
+        "file": "mcp-tools.json"
+      }
     },
     "run_for_functions": [
       "get_widget",
@@ -117,81 +146,7 @@ Resolve this problem by using one of the following options:
 
 ## Authentication problems
 
-### App ID mismatch between auth configuration and plugin
-
-If you see errors in your debug information card similar to:
-
-```text
-OAuth authentication failed: The App ID used in the request does not match the App ID in the authentication configuration. (HTTP 404)
-```
-
-Go to the [Teams developer portal](https://dev.teams.microsoft.com). Find your OAuth client or single sign-on (SSO) client registration and verify that the App ID in your plugin matches the registered App ID.
-
-### Base URL in auth configuration doesn't match the plugin
-
-If you see errors in your debug information card similar to:
-
-```text
-OAuth authentication failed: The base URL in your authentication configuration does not match the server URL. (HTTP 401)
-```
-
-Go to the [Teams developer portal](https://dev.teams.microsoft.com). Find your OAuth client or SSO client registration and verify that the MCP server URL in your plugin matches the registered base URL.
-
-### Reference ID in the plugin manifest is incorrect or missing
-
-If you see errors in your debug information card similar to:
-
-```text
-OAuth authentication failed: No matching configuration found for referenceID in 'runtime.auth' section of the action manifest
-```
-
-Go to the [Teams developer portal](https://dev.teams.microsoft.com). Find your OAuth client or SSO client registration and verify that the ID in your MCP server's runtime's `auth.reference_id` matches the registration's ID in the developer portal.
-
-### Organization policy restricts access
-
-If you see errors in your debug information card similar to:
-
-```text
-OAuth authentication failed: Access is restricted by your organization's policy. (HTTP 404)
-```
-
-Contact your organization's administrators to review and enable access for your app.
-
-### Sign in button is inactive or displays general error
-
-If your sign in button is inactive or disabled, or selecting it gives a general "Request cannot be processed" error, this condition might indicate temporary authentication or session problems. Retry the query. If the problem continues, reinstall the app or contact your organization's administrators.
-
-### Sign in popup fails to open
-
-Enable popups for the site in your browser's settings and try again.
-
-### Sign in popup opens but gets stuck or never closes
-
-If the sign in popup opens and the user completes authentication, but the popup never closes and Copilot doesn't receive the auth result, the popup's `window.opener` reference was likely destroyed during the OAuth redirect chain. Without `window.opener`, the popup can't communicate the auth result back to Copilot. A common symptom is that sign in fails the first time but succeeds on retry, because cached credentials skip the page that destroyed `window.opener`.
-
-Check the following items in your OAuth redirect chain.
-
-- **JavaScript nullifying `window.opener`:** Some login pages set `window.opener = null` as a blanket security measure against reverse tabnabbing. If any page in the auth redirect chain runs this code, the popup loses its connection to Copilot. Scope tabnabbing protections to user-initiated navigation only, and don't clear `window.opener` during in-popup redirects.
-- **`Cross-Origin-Opener-Policy` header set to `same-origin`:** If any page in the redirect chain serves a `Cross-Origin-Opener-Policy: same-origin` response header, the browser permanently severs the `window.opener` reference on cross-origin navigation. Ensure all pages in your OAuth redirect chain either omit the `Cross-Origin-Opener-Policy` header (which defaults to `unsafe-none`) or explicitly set it to `unsafe-none`.
-- **Links using `rel="noopener"`:** Anchor tags with `rel="noopener"` strip `window.opener` from the target page. Don't use `rel="noopener"` for navigation within the auth popup.
-
-To debug this issue, open your browser's developer tools on the popup window and type `window.opener` in the **Console** at each step of the redirect chain. If `window.opener` returns `null` before the final redirect, identify which page cleared it. You can also check the **Network** tab response headers for `Cross-Origin-Opener-Policy` values on each page in the chain.
-
-### Incorrect credentials error
-
-If you see an "Incorrect credentials" error in the sign in popup or chat response, make sure you're entering the correct credentials. If the error persists, ensure that the user has the required permissions.
-
-### Sign in URL not found
-
-Uninstall and reinstall the app, and then try signing in again.
-
-### Internal server error during authentication
-
-Check details in the authentication popup and contact your organization's administrators for permissions problems.
-
-### Consent dialog appears during sign in
-
-If a consent dialog appears requesting permissions or business justification, review the requested permissions and provide a business justification if necessary. If you're unsure, or if the consent dialog requests permissions that require admin consent, contact your organization's administrators.
+For authentication problems - such as sign-in failures, token errors, consent prompts, and auth configuration mismatches - see [Troubleshoot MCP and API plugin authentication](plugin-authentication-troubleshooting.md).
 
 ## Related content
 

@@ -3,7 +3,7 @@ title: "copilotReportRoot: getMicrosoft365CopilotUserCountTrend"
 description: Get the trend in the daily number of active and enabled users of Microsoft 365 Copilot for a specified time period. Copilot usage reports APIs are available as standard REST APIs under the Microsoft Graph namespace.
 author: mestew
 ms.author: mstewart
-ms.date: 01/08/2026
+ms.date: 07/15/2026
 ms.localizationpriority: medium
 ms.topic: reference
 doc_type: apiPageType
@@ -42,7 +42,7 @@ For more information about report views and names, see [Microsoft 365 reports - 
 :::zone pivot="graph-v1"
 
 ``` http
-GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUserCountTrend(period={period})
+GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUserCountTrend(period={period}, version={version})
 ```
 
 :::zone-end
@@ -50,7 +50,7 @@ GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUserC
 :::zone pivot="graph-preview"
 
 ``` http
-GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUserCountTrend(period={period})
+GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUserCountTrend(period={period}, version={version})
 ```
 
 :::zone-end
@@ -61,7 +61,46 @@ In the request URL, provide the following query parameters with values.
 
 | Parameter | Type   | Description |
 |-----------|--------|-------------|
-| `period`  | String | The number of previous days over which to report aggregated usage. The supported values are: `D7`, `D30`, `D90`, `D180`, `ALL`. The first four values follow the format Dn where n represents the number of days over which to aggregate data. `ALL` indicates to report usage for 7, 30, 90, and 180 days. |
+| `period`  | String | Required. The number of previous days over which to report aggregated usage. The supported values depend on the value of `version`. For `v1`, they are: `D7`, `D30`, `D90`, `D180`, `ALL`. For `v2`, they are `D7`, `D28`, `D90`, `D180`, `ALL`. The first four values follow the format `Dn` where `n` represents the number of previous days over which to aggregate data. `ALL` indicates to report usage for all supported periods (7, 30, 90, and 180 days for `v1`, 7, 28, 90, and 180 days for `v2`). |
+| `version` | String | Optional. The requested report version. The supported values are `v1` (default) and `v2`. |
+
+### Report versions
+
+Version 1 reports contain the following information.
+
+- Report Refresh Date
+- Report Date
+- Microsoft Teams Enabled Users
+- Microsoft Teams Active Users
+- Word Enabled Users
+- Word Active Users
+- PowerPoint Enabled Users
+- PowerPoint Active Users
+- Outlook Enabled Users
+- Outlook Active Users
+- Excel Enabled Users
+- Excel Active Users
+- OneNote Enabled Users
+- OneNote Active Users
+- Loop Enabled Users
+- Loop Active Users
+- Any App Enabled Users
+- Any App Active Users
+- Copilot Chat Enabled Users
+- Copilot Chat Active Users
+- Report Period
+
+Version 2 reports contain all of the information from version 1, with the following additional information.
+
+- Edge Enabled Users
+- Edge Active Users
+- Microsoft 365 Copilot Enabled Users
+- Microsoft 365 Copilot Active Users
+- Copilot Chat (work) Enabled Users
+- Copilot Chat (work) Active Users
+- Copilot Chat (web) Enabled Users
+- Copilot Chat (web) Active Users
+- Prompts submitted
 
 ## Request headers
 
@@ -85,16 +124,16 @@ The following example shows a request.
 
 :::zone pivot="graph-v1"
 
-``` http
-GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUserCountTrend(period='D7')?$format=application/json
+```http
+GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUserCountTrend(period='D7')
 ```
 
 :::zone-end
 
 :::zone pivot="graph-preview"
 
-``` http
-GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUserCountTrend(period='D7')?$format=application/json
+```http
+GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUserCountTrend(period='D7')
 ```
 
 :::zone-end
@@ -103,10 +142,23 @@ GET https://graph.microsoft.com/beta/copilot/reports/getMicrosoft365CopilotUserC
 
 The following example shows the response. The response object shown here might be shortened for readability.
 
-``` json
+:::zone pivot="graph-v1"
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/octet-stream
+
+Report Refresh Date,Report Date,Microsoft Teams Enabled Users,Microsoft Teams Active Users,Word Enabled Users,Word Active Users,PowerPoint Enabled Users,PowerPoint Active Users,Outlook Enabled Users,Outlook Active Users,Excel Enabled Users,Excel Active Users,OneNote Enabled Users,OneNote Active Users,Loop Enabled Users,Loop Active Users,Any App Enabled Users,Any App Active Users,Copilot Chat Enabled Users,Copilot Chat Active Users,Report Period
+2026-07-03,2026-07-03,25,0,25,0,25,0,25,0,25,0,25,0,25,0,25,0,25,0,7
+```
+
+:::zone-end
+
+:::zone pivot="graph-preview"
+
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json
-Content-Length: 10747
 
 {
   "value": [
@@ -140,3 +192,5 @@ Content-Length: 10747
   ]
 }
 ```
+
+:::zone-end
