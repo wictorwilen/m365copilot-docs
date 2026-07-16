@@ -81,7 +81,7 @@ Custom engine agents have the following characteristics:
 
 - **Hosting:** Require additional hosting outside of Microsoft 365, typically with cloud services such as Azure, at an additional cost.
 - **Tooling:** Orchestration can be built using low-code Copilot Studio or pro-code tools like Visual Studio, Visual Studio Code, and Agents Toolkit, using languages such as .NET, Python, and JavaScript, and frameworks like Semantic Kernel or LangChain.
-- **Channels:** Can run in Microsoft 365 Copilot and Microsoft 365 apps like Teams, Word, Excel, and Outlook, as well as external apps and websites such as customer service portals or internal dashboards.
+- **Channels:** Can run in Microsoft 365 Copilot and Microsoft 365 apps like Teams, Word, Excel, and Edge.
 - **Collaboration:** Supports agent-to-agent communication, allowing agents to delegate tasks and coordinate workflows—extending Copilot's capabilities across multiple agents within an organization.
 
 ## Choose what type of agent to build
